@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+###############################################
+# Interactive package installer for Fedora
+# Uses dnf5 and flatpak as backends
+###############################################
+
+set +e
+
+command -v fzf >/dev/null || {
+  echo "fzf not installed"
+  exit 1
+}
+
+QUERY="$*"
+
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+DNF_INST="$TMPDIR/dnf_inst"
+DNF_AVAIL="$TMPDIR/dnf_avail"
+FLAT_INST="$TMPDIR/flat_inst"
+FLAT_AVAIL="$TMPDIR/flat_avail"
+MERGED="$TMPDIR/merged"
+
+#############################################
+# Collect Fedora packages (dnf5)
+#############################################
+
+dnf repoquery --installed --qf "%{name}" 2>/dev/null | sort -u > "$DNF_INST"
+dnf repoquery --available --qf "%{name}" 2>/dev/null | sort -u > "$DNF_AVAIL"
+
+#############################################
+# Collect Flatpaks (ID + human name)
+#############################################
+
+flatpak list --columns=application,name 2>/dev/null \
+  | awk -F'\t' '{print $1 "|" $2}' \
+  | sort -u > "$FLAT_INST"
+
+flatpak remote-ls flathub --columns=application,name 2>/dev/null \
+  | awk -F'\t' '{print $1 "|" $2}' \
+  | sort -u > "$FLAT_AVAIL"
+
+#############################################
+# Ranking
+# 0 = installed
+# 1 = available
+#############################################
+
+awk '{print "0 dnf " $0}' "$DNF_INST" > "$MERGED"
+grep -vxFf "$DNF_INST" "$DNF_AVAIL" | awk '{print "1 dnf " $0}' >> "$MERGED"
+
+awk -F'|' '{print "0 flatpak " $1 " " $2}' "$FLAT_INST" >> "$MERGED"
+grep -vxFf "$FLAT_INST" "$FLAT_AVAIL" \
+  | awk -F'|' '{print "1 flatpak " $1 " " $2}' >> "$MERGED"
+
+#############################################
+# fzf UI
+#############################################
+
+SELECTED=$(sort -k1,1n "$MERGED" | \
+  fzf --multi \
+      --query="$QUERY" \
+      --prompt="pkg install > " \
+      --with-nth=2,3,4 \
+      --preview '
+        backend={2}
+        pkg={3}
+
+        if [ "$backend" = "dnf" ]; then
+          dnf info "$pkg" 2>/dev/null | sed -n "1,120p"
+        else
+          flatpak info "$pkg" 2>/dev/null | sed -n "1,120p"
+        fi
+      ' \
+      --preview-window=right:50%
+)
+
+[ -z "$SELECTED" ] && exit 0
+
+#############################################
+# Split selections
+#############################################
+
+DNF_PKGS=()
+FLAT_PKGS=()
+
+while read -r _ backend pkg _; do
+  if [ "$backend" = "dnf" ]; then
+    DNF_PKGS+=("$pkg")
+  else
+    FLAT_PKGS+=("$pkg")
+  fi
+done <<< "$SELECTED"
+
+#############################################
+# Install
+#############################################
+
+echo
+[ ${#DNF_PKGS[@]} -gt 0 ] && {
+  echo "DNF packages:"
+  printf "  %s\n" "${DNF_PKGS[@]}"
+}
+
+[ ${#FLAT_PKGS[@]} -gt 0 ] && {
+  echo "Flatpak apps:"
+  printf "  %s\n" "${FLAT_PKGS[@]}"
+}
+
+echo
+read -rp "Proceed with installation? [y/N] " confirm
+[[ "$confirm" =~ ^[Yy]$ ]] || exit 0
+
+[ ${#DNF_PKGS[@]} -gt 0 ] && sudo dnf install -y "${DNF_PKGS[@]}" || true
+[ ${#FLAT_PKGS[@]} -gt 0 ] && flatpak install -y flathub "${FLAT_PKGS[@]}" || true
