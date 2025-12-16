@@ -34,4 +34,4 @@ run_cmd git clone $REPO_URL "$CLONE_DIR"
 # 2. Run installation script
 #############################################
 log "Running end-4 Hyprland dotfiles installation script" 
-run_cmd bash "yes | $CLONE_DIR/setup install"
+run_cmd bash -c "yes | $CLONE_DIR/setup install"

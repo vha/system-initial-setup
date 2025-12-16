@@ -129,8 +129,8 @@ fi
 #############################################
 # 4. AppStream metadata for Discover
 #############################################
-log "Installing AppStream metadata for Discover"
 if [ "$PKG_MGR" = "dnf" ]; then
+  log "Installing AppStream metadata for Discover"
   pkg_install rpmfusion-free-appstream-data
   pkg_install rpmfusion-nonfree-appstream-data
 fi
@@ -167,9 +167,9 @@ sudo_run flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/
 #############################################
 log "Installing KDE Discover backends"
 
-pkg_install plasma-discover plasma-discover-flatpak plasma-discover-notifier
+pkg_install plasma-discover plasma-discover-flatpak 
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install PackageKit-qt6
+  pkg_install plasma-discover-notifier PackageKit-qt6
 else
   pkg_install packagekit
 fi
@@ -183,7 +183,7 @@ pkg_install vlc kdeconnect filelight ark gwenview kcalc spectacle
 if [ "$PKG_MGR" = "dnf" ]; then
   pkg_install phonon-qt6-backend-vlc qt
 else
-  pkg_install phonon-backend-vlc
+  pkg_install phonon4qt6-backend-vlc qtchooser
 fi
 
 #############################################
@@ -249,10 +249,11 @@ fi
 #############################################
 # 14. Restore x11 session support
 #############################################
+log "Restoring X11 session support"
 if [ "$PKG_MGR" = "dnf" ]; then
-  log "Restoring X11 session support"
-
   pkg_install kwin-x11 plasma-workspace-x11 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-drv-libinput xorg-x11-xauth
+else
+  pkg_install kwin-x11 plasma-workspace-x11 plasma-session-x11
 fi
 
 

@@ -135,13 +135,11 @@ run_cmd "$KWRITE" --file plasmanotifyrc --group Notifications --key LowPriorityH
 #############################################
 # Disable screen edge activation
 #############################################
-log "Disabling screen edge actions"
-
+# log "Disabling screen edge actions"
 # $KWRITE --file kwinrc --group ElectricBorders --key Top None
 # $KWRITE --file kwinrc --group ElectricBorders --key Bottom None
 # $KWRITE --file kwinrc --group ElectricBorders --key Left None
 # $KWRITE --file kwinrc --group ElectricBorders --key Right None
-
 
 #############################################
 # Keyboard repeat rate
@@ -160,16 +158,16 @@ set_kglobal_shortcut "kwin" "Window Fullscreen" "Meta+F"
 #############################################
 # Plasma extensions
 #############################################
-log "Setting up plasma extensions"
-run_cmd plasmapkg2 --type wallpaper --install ./extensions/plasma-smart-video-wallpaper-reborn-v2.8.0.zip
+log "Installing Plasma extensions"
+run_cmd kpackagetool6 --type Plasma/Wallpaper --install ./extensions/plasma-smart-video-wallpaper-reborn-v2.8.0.zip
 
 
 #############################################
 # Apply changes
 #############################################
-log "Reloading KDE components"
+# log "Reloading KDE components"
 
-run_cmd qdbus org.kde.KWin /KWin reconfigure
+# run_cmd qdbus org.kde.KWin /KWin reconfigure
 # run_cmd qdbus org.kde.plasmashell /PlasmaShell refreshCurrentShell
 
 #############################################

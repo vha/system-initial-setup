@@ -89,7 +89,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
   pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins vlc
 else
   # Ubuntu/Kubuntu-specific
-  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-rar vlc
+  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
 fi
 
 
