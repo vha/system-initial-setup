@@ -57,9 +57,10 @@ pkg_group_install() {
     if [ "${STRICT:-0}" -eq 1 ]; then
       sudo dnf group install -y "$@"
     else
-      log "Skipping group install (not supported on apt); groups: $@"
+    sudo dnf group install -y "$@" || true
     fi
   else
+    log "Skipping group install (not supported on apt); groups: $@"
   fi
 }
 
