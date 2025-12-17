@@ -1,0 +1,8 @@
+#!/bin/bash
+
+Hyprland
+
+rm -rf /run/user/$(id -u)/hypr
+rm -rf /run/user/$(id -u)/quickshell
+
+systemctl --user unset-environment WAYLAND_DISPLAY HYPRLAND_INSTANCE_SIGNATURE XDG_CURRENT_DESKTOP QT_QPA_PLATFORM

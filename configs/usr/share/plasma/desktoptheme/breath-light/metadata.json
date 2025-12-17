@@ -1,0 +1,19 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Manjaro Team"
+            }
+        ],
+        "Category": "Plasma Theme",
+        "Description": "Manjaro Branded Theme (Light Variant)",
+        "EnabledByDefault": true,
+        "Id": "BreathLight",
+        "License": "CC BY-ND (GPL in Breeze Elements)",
+        "Name": "Breath Light",
+        "Name[de_DE.utf8]": "Breath Light",
+        "Version": "0.2.0",
+        "Website": "https://gitlab.manjaro.org"
+    },
+    "X-Plasma-API": "5.0"
+}

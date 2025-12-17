@@ -67,7 +67,6 @@ flatpak_safe() {
 }
 
 flatpak_safe com.brave.Browser
-flatpak_safe com.visualstudio.code
 flatpak_safe com.discordapp.Discord
 flatpak_safe com.spotify.Client
 flatpak_safe com.ktechpit.torrhunt
@@ -76,23 +75,41 @@ flatpak_safe org.kde.krita
 flatpak_safe org.libreoffice.LibreOffice
 flatpak_safe com.getmailspring.Mailspring
 flatpak_safe com.usebottles.bottles
+flatpak_safe com.rustdesk.RustDesk
+flatpak_safe org.localsend.localsend_app
 
 #############################################
-# CLI / system tools (distro-specific)
+# Regular packages
 #############################################
-log "Installing CLI and system utilities"
+log "Installing common packages via $PKG_MGR"
 
 # Common packages across distros
 COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins vim vlc steam
+  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins vim tldr vlc steam openrgb
+
+  # Visual Studio Code
+  sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
+  echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\nautorefresh=1\ntype=rpm-md\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/vscode.repo > /dev/null   
+  pkg_cmd install code
+
+  # Tailscale
+  sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+  pkg_cmd install tailscale
+
+  # Docker
+  sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+  sudo_run dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  sudo_run groupadd docker
+  sudo_run usermod -aG docker $USER
+  sudo_run cp configs/etc/docker/daemon.json /etc/docker/daemon.json
+
 else
   # Ubuntu/Kubuntu-specific
   pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
 fi
-
 
 #############################################
 # Optional: remove KDE clutter
@@ -105,7 +122,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
     kontact \
     kmail \
     akregator \
-    dragonplayer
+    dragon
 else
   # Ubuntu/Kubuntu
   pkg_cmd remove -y \
@@ -113,7 +130,7 @@ else
     kontact \
     kmail \
     akregator \
-    dragonplayer || true
+    dragon || true
 fi
 
 #############################################

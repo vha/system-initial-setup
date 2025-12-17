@@ -1,0 +1,16 @@
+{
+  "KPackageStructure": "Plasma/LookAndFeel",
+  "KPlugin": {
+    "Authors": [
+      {
+        "Name": "Manjaro Team"
+      }
+    ],
+    "Description": "Manjaro Branded Theme",
+    "Id": "org.manjaro.breath.desktop",
+    "License": "GPLv2+",
+    "Name": "Breath",
+    "Name[x-test]": "xxBreathxx",
+    "Website": "https://manjaro.org/"
+  }
+}

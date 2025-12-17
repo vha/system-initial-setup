@@ -256,12 +256,20 @@ else
 fi
 
 #############################################
-# 15. Copy user scripts
+# 15. Copy config files
 #############################################
 log "Copying executables to ~/bin"
 mkdir -p "$HOME/bin"
-cp ./bin/* "$HOME/bin/"
+cp configs/.local/bin/* "$HOME/bin/"
 
+log "Copying themes"
+sudo_run mkdir -p "/usr/share/plasma/look-and-feel/"
+sudo_run mkdir -p "/usr/share/plasma/desktoptheme/"
+sudo_run mkdir -p "/usr/share/sddm/themes/"
+
+sudo_run cp -r configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-and-feel/"
+sudo_run cp -r configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
+sudo_run cp -r configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
 
 #############################################
 # Done

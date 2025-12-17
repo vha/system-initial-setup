@@ -35,3 +35,6 @@ run_cmd git clone $REPO_URL "$CLONE_DIR"
 #############################################
 log "Running end-4 Hyprland dotfiles installation script" 
 run_cmd bash -c "yes | $CLONE_DIR/setup install"
+
+sudo cp configs/opt/wrapped-hyprland /opt/wrapped-hyprland
+sudo sed --in-place 's/^Exec\=Hyprland/Exec=\/opt\/wrapped-hyprland/g' /usr/share/wayland-sessions/hyprland.desktop
