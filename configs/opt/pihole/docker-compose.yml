@@ -1,0 +1,24 @@
+services:
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    hostname: pihole # optional, for DHCP
+    network_mode: host # no port mapping needed 
+    restart: unless-stopped
+
+    environment:
+      TZ: "Europe/Madrid"
+      DNSMASQ_LISTENING: "all" 
+      WEB_BIND_ADDR: "127.0.0.1" # bind web interface to localhost only
+      WEBPASSWORD: "password" # Default password; change it after setup
+
+    volumes:
+      - ./etc-pihole:/etc/pihole:Z # :Z to appease SELinux
+      - ./etc-dnsmasq.d:/etc/dnsmasq.d:Z
+
+    healthcheck:
+      test: ["CMD", "dig", "@127.0.0.1", "pi.hole"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  

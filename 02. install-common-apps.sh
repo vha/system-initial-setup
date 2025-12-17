@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+PIHOLE_DIR=/opt/pihole
+
 if [ "${STRICT:-0}" -eq 1 ]; then
   set -euo pipefail
 else
@@ -66,6 +68,35 @@ flatpak_safe() {
   fi
 }
 
+setup_docker() {
+  sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+  sudo_run dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  sudo getent group docker >/dev/null || sudo_run groupadd docker  # create docker group if it doesn't exist, don't sudo_run getent so it actually fails if group doesn't exist
+  sudo_run usermod -aG docker $USER # group membership applies next login
+  sudo_run install -m 644 configs/etc/docker/daemon.json /etc/docker/daemon.json
+  sudo_run systemctl enable --now docker
+}
+
+setup_pihole() {
+  log "Setting up Pi-hole via Docker"
+  sudo_run mkdir -p $PIHOLE_DIR/{etc-pihole,etc-dnsmasq.d}
+  sudo_run chown -R 1000:1000 $PIHOLE_DIR
+  cp opt/pihole/docker-compose.yml $PIHOLE_DIR/docker-compose.yml
+
+  sudo_run install -d /etc/systemd/resolved.conf.d #  ensure dir exists
+  sudo_run install -d /etc/NetworkManager/conf.d
+  sudo_run install -m 644 configs/etc/systemd/resolved.conf.d/* /etc/systemd/resolved.conf.d/
+  sudo_run install -m 644 configs/etc/NetworkManager/conf.d/* /etc/NetworkManager/conf.d/
+  sudo_run ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf # point resolv.conf to systemd-resolved
+
+
+  sudo_run systemctl try-restart NetworkManager
+  sudo_run systemctl try-restart systemd-resolved
+  sudo_run chcon -Rt container_file_t $PIHOLE_DIR # SELinux context
+
+  sudo_run docker compose -f $PIHOLE_DIR/docker-compose.yml up -d --remove-orphans
+}
+
 flatpak_safe com.brave.Browser
 flatpak_safe com.discordapp.Discord
 flatpak_safe com.spotify.Client
@@ -88,7 +119,7 @@ COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins vim tldr vlc steam openrgb
+  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim tldr vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
@@ -100,11 +131,16 @@ if [ "$PKG_MGR" = "dnf" ]; then
   pkg_cmd install tailscale
 
   # Docker
-  sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
-  sudo_run dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  sudo_run groupadd docker
-  sudo_run usermod -aG docker $USER
-  sudo_run cp configs/etc/docker/daemon.json /etc/docker/daemon.json
+  setup_docker
+
+  # Pi-hole
+  setup_pihole
+
+  # Verify Pi-hole setup
+  log "Verifying Pi-hole setup"
+  resolvectl status
+  ss -tulpn | grep :53
+  docker ps --filter name=pihole
 
 else
   # Ubuntu/Kubuntu-specific
