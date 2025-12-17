@@ -72,16 +72,16 @@ setup_docker() {
   sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
   sudo_run dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo getent group docker >/dev/null || sudo_run groupadd docker  # create docker group if it doesn't exist, don't sudo_run getent so it actually fails if group doesn't exist
-  sudo_run usermod -aG docker $USER # group membership applies next login
+  sudo_run usermod -aG docker $USER # group membership applies after reboot
   sudo_run install -m 644 configs/etc/docker/daemon.json /etc/docker/daemon.json
   sudo_run systemctl enable --now docker
 }
 
 setup_pihole() {
   log "Setting up Pi-hole via Docker"
-  sudo_run mkdir -p $PIHOLE_DIR/{etc-pihole,etc-dnsmasq.d}
+  sudo_run mkdir -p $PIHOLE_DIR #/{etc-pihole,etc-dnsmasq.d}
   sudo_run chown -R 1000:1000 $PIHOLE_DIR
-  cp opt/pihole/docker-compose.yml $PIHOLE_DIR/docker-compose.yml
+  cp configs/opt/pihole/docker-compose.yml $PIHOLE_DIR/docker-compose.yml
 
   sudo_run install -d /etc/systemd/resolved.conf.d #  ensure dir exists
   sudo_run install -d /etc/NetworkManager/conf.d
@@ -119,16 +119,16 @@ COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim tldr vlc steam openrgb
+  pkg_install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced tldr vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
   echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\nautorefresh=1\ntype=rpm-md\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/vscode.repo > /dev/null   
-  pkg_cmd install code
+  pkg_install code
 
   # Tailscale
   sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-  pkg_cmd install tailscale
+  pkg_install tailscale
 
   # Docker
   setup_docker
@@ -144,7 +144,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
 
 else
   # Ubuntu/Kubuntu-specific
-  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
+  pkg_install $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
 fi
 
 #############################################

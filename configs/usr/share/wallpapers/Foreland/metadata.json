@@ -1,0 +1,13 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "andreshimas@gmail.com",
+        "Name": "Andrey Koshelev"
+      }
+    ],
+    "Id": "Foreland",
+    "License": "CC BY-SA",
+    "Name": "Foreland"
+  }
+}

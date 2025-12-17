@@ -99,31 +99,25 @@ else
 fi
 
 #############################################
-# 2. Enable third-party repositories
+# 3. Enable additional multimedia repositories
 #############################################
 if [ "$PKG_MGR" = "dnf" ]; then
-  log "Enabling Fedora third-party repositories"
-  pkg_install fedora-workstation-repositories
+  log "Enabling RPM Fusion and third party repositories"
+  # pkg_install fedora-workstation-repositories
+  
+  FEDORA_VER=$(rpm -E %fedora)
+  pkg_install \
+    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VER}.noarch.rpm \
+    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VER}.noarch.rpm
+
   sudo_run dnf config-manager setopt google-chrome.enabled=1
   sudo_run dnf config-manager setopt rpmfusion-free.enabled=1
   sudo_run dnf config-manager setopt rpmfusion-nonfree.enabled=1
+  sudo_run dnf config-manager setopt rpmfusion-nonfree-steam.enabled=1
 else
   log "Adding Ubuntu third-party repositories"
   sudo_run add-apt-repository -y universe multiverse restricted
   sudo_run add-apt-repository -y ppa:mozillateam/ppa
-fi
-
-#############################################
-# 3. Enable additional multimedia repositories
-#############################################
-if [ "$PKG_MGR" = "dnf" ]; then
-  log "Enabling RPM Fusion repositories"
-  FEDORA_VER=$(rpm -E %fedora)
-  pkg_cmd install -y \
-    https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-${FEDORA_VER}.noarch.rpm \
-    https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-${FEDORA_VER}.noarch.rpm
-else
-  log "Ubuntu multimedia repositories already included in universe/multiverse"
 fi
 
 #############################################
@@ -169,7 +163,7 @@ log "Installing KDE Discover backends"
 
 pkg_install plasma-discover plasma-discover-flatpak 
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install plasma-discover-notifier PackageKit-Qt6
+  pkg_install plasma-discover PackageKit-Qt6
 else
   pkg_install packagekit
 fi
