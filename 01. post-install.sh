@@ -256,6 +256,13 @@ else
   pkg_install kwin-x11 plasma-workspace-x11 plasma-session-x11
 fi
 
+#############################################
+# 15. Copy user scripts
+#############################################
+log "Copying executables to ~/bin"
+mkdir -p "$HOME/bin"
+cp ./bin/* "$HOME/bin/"
+
 
 #############################################
 # Done

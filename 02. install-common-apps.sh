@@ -67,14 +67,16 @@ flatpak_safe() {
 }
 
 flatpak_safe com.brave.Browser
-flatpak_safe org.kde.Kate
+flatpak_safe com.visualstudio.code
 flatpak_safe com.discordapp.Discord
 flatpak_safe com.spotify.Client
 flatpak_safe com.valvesoftware.Steam
 flatpak_safe com.ktechpit.torrhunt
 flatpak_safe com.transmissionbt.Transmission
 flatpak_safe org.kde.krita
-flatpak_safe io.github.jeffshee.Hidamari # Video wallpaper
+flatpak_safe org.kde.kdenlive
+flatpak_safe org.libreoffice.LibreOffice
+flatpak_safe com.getmailspring.Mailspring
 
 #############################################
 # CLI / system tools (distro-specific)
