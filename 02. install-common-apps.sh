@@ -70,13 +70,12 @@ flatpak_safe com.brave.Browser
 flatpak_safe com.visualstudio.code
 flatpak_safe com.discordapp.Discord
 flatpak_safe com.spotify.Client
-flatpak_safe com.valvesoftware.Steam
 flatpak_safe com.ktechpit.torrhunt
 flatpak_safe com.transmissionbt.Transmission
 flatpak_safe org.kde.krita
-flatpak_safe org.kde.kdenlive
 flatpak_safe org.libreoffice.LibreOffice
 flatpak_safe com.getmailspring.Mailspring
+flatpak_safe com.usebottles.bottles
 
 #############################################
 # CLI / system tools (distro-specific)
@@ -88,7 +87,7 @@ COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins vlc
+  pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-plugins vim vlc steam
 else
   # Ubuntu/Kubuntu-specific
   pkg_cmd install -y $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework

@@ -104,9 +104,9 @@ fi
 if [ "$PKG_MGR" = "dnf" ]; then
   log "Enabling Fedora third-party repositories"
   pkg_install fedora-workstation-repositories
-  sudo_run dnf config-manager --set-enabled google-chrome
-  sudo_run dnf config-manager --set-enabled rpmfusion-free
-  sudo_run dnf config-manager --set-enabled rpmfusion-nonfree
+  sudo_run dnf config-manager setopt google-chrome.enabled=1
+  sudo_run dnf config-manager setopt rpmfusion-free.enabled=1
+  sudo_run dnf config-manager setopt rpmfusion-nonfree.enabled=1
 else
   log "Adding Ubuntu third-party repositories"
   sudo_run add-apt-repository -y universe multiverse restricted
@@ -169,7 +169,7 @@ log "Installing KDE Discover backends"
 
 pkg_install plasma-discover plasma-discover-flatpak 
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install plasma-discover-notifier PackageKit-qt6
+  pkg_install plasma-discover-notifier PackageKit-Qt6
 else
   pkg_install packagekit
 fi
@@ -179,7 +179,7 @@ fi
 #############################################
 log "Installing KDE utilities"
 
-pkg_install vlc kdeconnect filelight ark gwenview kcalc spectacle
+pkg_install vlc kde-connect filelight ark gwenview kcalc spectacle
 if [ "$PKG_MGR" = "dnf" ]; then
   pkg_install phonon-qt6-backend-vlc qt
 else
@@ -239,9 +239,8 @@ sudo_run systemctl enable --now firewalld
 log "Setting up backups"
 
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install snapper btrfs-assistant grub-btrfs
+  pkg_install snapper btrfs-assistant
   sudo_run snapper create-config /
-  sudo_run grub2-mkconfig -o /boot/grub2/grub.cfg
 else
   pkg_install timeshift
 fi
