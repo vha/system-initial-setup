@@ -1,24 +1,6 @@
 #!/usr/bin/env bash
 
-if [ "${STRICT:-0}" -eq 1 ]; then
-  set -euo pipefail
-else
-  set +e   # never abort
-fi
-
-log() {
-  echo -e "\n==> $1"
-}
-
-
-# Helper to run commands in strict or non-strict mode
-run_cmd() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    "$@"
-  else
-    "$@" || true
-  fi
-}
+source helpers.sh
 
 REPO_URL="https://github.com/vha/dots-hyprland.git"
 CLONE_DIR="$HOME/src/dots-hyprland"

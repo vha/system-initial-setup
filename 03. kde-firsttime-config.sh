@@ -38,7 +38,7 @@ set_kglobal_shortcut() {
   new_value="${new_shortcut},${alt:-},${desc:-}"
 
   # Write updated value
-  run_cmd "$KWRITE" \
+  "$KWRITE" \
     --file "$config" \
     --group "$component" \
     --key "$action" \
@@ -61,11 +61,11 @@ fi
 #############################################
 log "Installing KDE Discover backends"
 
-sudo_run install plasma-discover plasma-discover-flatpak 
+pkg_install plasma-discover plasma-discover-flatpak 
 if [ "$PKG_MGR" = "dnf" ]; then
-  sudo_run install PackageKit-Qt6
+  pkg_install PackageKit-Qt6
 else
-  sudo_run install packagekit
+  pkg_install packagekit
 fi
 
 #############################################
@@ -73,11 +73,11 @@ fi
 #############################################
 log "Installing KDE utilities"
 
-sudo_run install vlc kde-connect filelight ark gwenview kcalc spectacle
+pkg_install vlc kde-connect filelight ark gwenview kcalc spectacle
 if [ "$PKG_MGR" = "dnf" ]; then
-  sudo_run install phonon-qt6-backend-vlc qt
+  pkg_install phonon-qt6-backend-vlc qt
 else
-  sudo_run install phonon4qt6-backend-vlc qtchooser
+  pkg_install phonon4qt6-backend-vlc qtchooser
 fi
 
 #############################################
@@ -86,42 +86,42 @@ fi
 log "Applying KDE configuration tweaks"
 
 log "Configuring workspace behavior"
-run_cmd "$KWRITE" --file kwinrc --group Windows --key FocusPolicy ClickToFocus
-run_cmd "$KWRITE" --file kwinrc --group Windows --key AutoRaise false
-run_cmd "$KWRITE" --file kwinrc --group Windows --key DelayFocusInterval 0
+"$KWRITE" --file kwinrc --group Windows --key FocusPolicy ClickToFocus
+"$KWRITE" --file kwinrc --group Windows --key AutoRaise false
+"$KWRITE" --file kwinrc --group Windows --key DelayFocusInterval 0
 
 # log "Disabling KDE Activities"
-# run_cmd "$KWRITE" --file kactivitymanagerdrc --group activities --key enabled false
+# "$KWRITE" --file kactivitymanagerdrc --group activities --key enabled false
 
 log "Configuring Dolphin defaults"
-run_cmd "$KWRITE" --file kdeglobals --group KDE --key SingleClick false
-run_cmd "$KWRITE" --file dolphinrc --group General --key ShowFullPath true
+"$KWRITE" --file kdeglobals --group KDE --key SingleClick false
+"$KWRITE" --file dolphinrc --group General --key ShowFullPath true
 
 # Disable preview popups (performance & clarity)
 # $KWRITE --file dolphinrc --group General --key ShowPreview false
 
 log "Configuring task manager behavior"
-run_cmd "$KWRITE" --file plasmarc --group TaskManager --key GroupingStrategy 1
-run_cmd "$KWRITE" --file plasmarc --group TaskManager --key MiddleClickAction Close
-run_cmd "$KWRITE" --file plasmarc --group TaskManager --key OnlyGroupWhenFull false
+"$KWRITE" --file plasmarc --group TaskManager --key GroupingStrategy 1
+"$KWRITE" --file plasmarc --group TaskManager --key MiddleClickAction Close
+"$KWRITE" --file plasmarc --group TaskManager --key OnlyGroupWhenFull false
 
 log "Configuring virtual desktops"
-run_cmd "$KWRITE" --file kwinrc --group Desktops --key Number 2
-run_cmd "$KWRITE" --file kwinrc --group Desktops --key Rows 1
+"$KWRITE" --file kwinrc --group Desktops --key Number 2
+"$KWRITE" --file kwinrc --group Desktops --key Rows 1
 
 log "Configuring font rendering"
-run_cmd "$KWRITE" --file kdeglobals --group KDE --key XftAntialias true
-run_cmd "$KWRITE" --file kdeglobals --group KDE --key XftHinting true
-run_cmd "$KWRITE" --file kdeglobals --group KDE --key XftHintStyle hintslight
-run_cmd "$KWRITE" --file kdeglobals --group KDE --key XftSubPixel rgb
+"$KWRITE" --file kdeglobals --group KDE --key XftAntialias true
+"$KWRITE" --file kdeglobals --group KDE --key XftHinting true
+"$KWRITE" --file kdeglobals --group KDE --key XftHintStyle hintslight
+"$KWRITE" --file kdeglobals --group KDE --key XftSubPixel rgb
 
 log "Configuring power button behavior"
-run_cmd "$KWRITE" --file powerdevilrc --group General --key HandleButtonEvents true
-run_cmd "$KWRITE" --file powerdevilrc --group ButtonEvents --key powerButtonAction 16
+"$KWRITE" --file powerdevilrc --group General --key HandleButtonEvents true
+"$KWRITE" --file powerdevilrc --group ButtonEvents --key powerButtonAction 16
 
 log "Reducing notification noise"
-run_cmd "$KWRITE" --file plasmanotifyrc --group Notifications --key PopupTimeout 5000
-run_cmd "$KWRITE" --file plasmanotifyrc --group Notifications --key LowPriorityHistory true
+"$KWRITE" --file plasmanotifyrc --group Notifications --key PopupTimeout 5000
+"$KWRITE" --file plasmanotifyrc --group Notifications --key LowPriorityHistory true
 
 # log "Disabling screen edge actions"
 # $KWRITE --file kwinrc --group ElectricBorders --key Top None
@@ -130,14 +130,14 @@ run_cmd "$KWRITE" --file plasmanotifyrc --group Notifications --key LowPriorityH
 # $KWRITE --file kwinrc --group ElectricBorders --key Right None
 
 log "Setting keyboard repeat rate"
-run_cmd "$KWRITE" --file kcminputrc --group Keyboard --key RepeatDelay 250
-run_cmd "$KWRITE" --file kcminputrc --group Keyboard --key RepeatRate 30
+"$KWRITE" --file kcminputrc --group Keyboard --key RepeatDelay 250
+"$KWRITE" --file kcminputrc --group Keyboard --key RepeatRate 30
 
 log "Configuring global keyboard shortcuts"
 set_kglobal_shortcut "kwin" "Window Fullscreen" "Meta+F"
 
 log "Installing Plasma extensions"
-run_cmd kpackagetool6 --type Plasma/Wallpaper --install ./extensions/plasma-smart-video-wallpaper-reborn-v2.8.0.zip
+kpackagetool6 --type Plasma/Wallpaper --install ./extensions/plasma-smart-video-wallpaper-reborn-v2.8.0.zip
 
 log "Copying themes"
 sudo_run mkdir -p "/usr/share/plasma/look-and-feel/"
@@ -146,10 +146,10 @@ sudo_run mkdir -p "/usr/share/sddm/themes/"
 sudo_run mkdir -p "/etc/sddm.conf.d/"
 
 log "Applying Plasma and SDDM themes"
-sudo_run install -r configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-and-feel/"
-sudo_run install -r configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
-sudo_run install -r configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
-sudo_run install -r configs/usr/share/wallpapers/* "/usr/share/wallpapers/"
+sudo_run install configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-and-feel/"
+sudo_run install configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
+sudo_run install configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
+sudo_run install configs/usr/share/wallpapers/* "/usr/share/wallpapers/"
 sudo_run install configs/etc/sddm.conf.d/kde_settings.conf /etc/sddm.conf.d/kde_settings.conf
 
 lookandfeeltool -a org.manjaro.breath-light.desktop
@@ -159,8 +159,8 @@ lookandfeeltool -a org.manjaro.breath-light.desktop
 
 # log "Reloading KDE components"
 
-# run_cmd qdbus org.kde.KWin /KWin reconfigure
-# run_cmd qdbus org.kde.plasmashell /PlasmaShell refreshCurrentShell
+# qdbus org.kde.KWin /KWin reconfigure
+# qdbus org.kde.plasmashell /PlasmaShell refreshCurrentShell
 
 #############################################
 # Done

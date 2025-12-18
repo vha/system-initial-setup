@@ -81,3 +81,11 @@ sudo_run() {
     sudo "$@" || true
   fi
 }
+
+flatpak_safe() {
+  if [ "${STRICT:-0}" -eq 1 ]; then
+    flatpak install -y flathub "$1"
+  else
+    flatpak install -y flathub "$1" || true
+  fi
+}

@@ -4,74 +4,15 @@ source helpers.sh
 
 PIHOLE_DIR=/opt/pihole
 
-if [ "${STRICT:-0}" -eq 1 ]; then
-  set -euo pipefail
-else
-  set +e
-fi
-
-log() {
-  echo -e "\n==== $1 ===="
-}
-
-#############################################
-# OS Detection
-#############################################
-if grep -q '^ID=fedora$' /etc/os-release 2>/dev/null; then
-  OS="fedora"
-  PKG_MGR="dnf"
-elif grep -q '^ID=ubuntu$' /etc/os-release 2>/dev/null; then
-  OS="ubuntu"
-  PKG_MGR="apt"
-else
-  echo "ERROR: Unsupported distribution. Supported: Fedora, Ubuntu/Kubuntu"
-  exit 1
-fi
-
-log "Detected OS: $OS (package manager: $PKG_MGR)"
-
-#############################################
-# Distro-agnostic package helpers
-#############################################
-pkg_cmd() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf "$@"
-    else
-      sudo apt-get "$@"
-    fi
-  else
-    if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf "$@" || true
-    else
-      sudo apt-get "$@" || true
-    fi
-  fi
-}
-
-sudo_run() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    sudo "$@"
-  else
-    sudo "$@" || true
-  fi
-}
 
 #############################################
 # Flatpak apps (preferred for GUI)
 #############################################
 log "Installing common Flatpak applications"
 
-flatpak_safe() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    flatpak install -y flathub "$1"
-  else
-    flatpak install -y flathub "$1" || true
-  fi
-}
 
 setup_docker() {
-  sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+  yes | sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
   sudo_run dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo getent group docker >/dev/null || sudo_run groupadd docker  # create docker group if it doesn't exist, don't sudo_run getent so it actually fails if group doesn't exist
   sudo_run usermod -aG docker $USER # group membership applies after reboot
@@ -129,7 +70,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
   sudo_run install code
 
   # Tailscale
-  sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
+  yes | sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
   sudo_run install tailscale
 
   # Docker
