@@ -5,15 +5,9 @@ source helpers.sh
 PIHOLE_DIR=/opt/pihole
 
 
-#############################################
-# Flatpak apps (preferred for GUI)
-#############################################
-log "Installing common Flatpak applications"
-
-
 setup_docker() {
   yes | sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
-  sudo_run dnf install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
   sudo getent group docker >/dev/null || sudo_run groupadd docker  # create docker group if it doesn't exist, don't sudo_run getent so it actually fails if group doesn't exist
   sudo_run usermod -aG docker $USER # group membership applies after reboot
   sudo_run install -m 644 configs/etc/docker/daemon.json /etc/docker/daemon.json
@@ -40,6 +34,11 @@ setup_pihole() {
   sudo_run docker compose -f $PIHOLE_DIR/docker-compose.yml up -d --remove-orphans
 }
 
+#############################################
+# Flatpak apps (preferred for GUI)
+#############################################
+log "Installing common Flatpak applications"
+
 flatpak_safe com.brave.Browser
 flatpak_safe com.discordapp.Discord
 flatpak_safe com.spotify.Client
@@ -62,16 +61,16 @@ COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  sudo_run install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced tldr vlc steam openrgb
+  pkg_install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced tldr vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
   echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\nautorefresh=1\ntype=rpm-md\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/vscode.repo > /dev/null   
-  sudo_run install code
+  pkg_install code
 
   # Tailscale
   yes | sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-  sudo_run install tailscale
+  pkg_install tailscale
 
   # Docker
   setup_docker
@@ -87,7 +86,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
 
 else
   # Ubuntu/Kubuntu-specific
-  sudo_run install $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
+  pkg_install $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
 fi
 
 #############################################
