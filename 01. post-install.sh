@@ -265,6 +265,8 @@ sudo_run cp -r configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-
 sudo_run cp -r configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
 sudo_run cp -r configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
 
+sudo_run sed -i 's/^Current=.*$/Current=breath/g' /etc/sddm.conf.d/kde_settings.conf
+
 #############################################
 # Done
 #############################################
