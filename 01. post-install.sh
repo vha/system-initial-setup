@@ -250,7 +250,7 @@ else
 fi
 
 #############################################
-# 15. Copy config files
+# 15. Copy config and theme files
 #############################################
 log "Copying executables to ~/bin"
 mkdir -p "$HOME/bin"
@@ -265,7 +265,12 @@ sudo_run cp -r configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-
 sudo_run cp -r configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
 sudo_run cp -r configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
 
+# Apply SDDM theme
 sudo_run sed -i 's/^Current=.*$/Current=breath/g' /etc/sddm.conf.d/kde_settings.conf
+
+# Apply Plasma themes
+lookandfeeltool -a org.manjaro.breath-light.desktop
+# kwriteconfig6 --file ksplashrc --group KSplash --key Theme Fedora-Minimalistic
 
 #############################################
 # Done

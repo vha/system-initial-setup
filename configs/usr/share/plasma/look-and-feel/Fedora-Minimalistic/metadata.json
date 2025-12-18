@@ -1,0 +1,19 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "freezykaif@gmail.com",
+                "Name": "FreezyKaif"
+            }
+        ],
+        "Category": "Plasma Look And Feel",
+        "Description": "Fedora Linux Splash Screen For Plasma 6",
+        "Id": "Fedora-Minimalistic",
+        "License": "GPLv3",
+        "Name": "Fedora Minimalistic",
+        "Website": ""
+    },
+    "Keywords": "Desktop;Workspace;Appearance;Look and Feel;Logout;Lock;Suspend;Shutdown;Hibernate;",
+    "X-Plasma-APIVersion": "2"
+}

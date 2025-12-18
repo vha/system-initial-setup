@@ -32,7 +32,7 @@ Image {
 
             anchors.centerIn: parent
             asynchronous: true
-            source: "images/manjarologo.svgz"
+            source: "images/fedora.svg"
             sourceSize.height: size
         }
 
