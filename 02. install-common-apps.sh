@@ -57,11 +57,11 @@ flatpak_safe org.localsend.localsend_app
 log "Installing common packages via $PKG_MGR"
 
 # Common packages across distros
-COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
+COMMON_TOOLS="git htop vim unzip fzf ffmpeg mpv tldr"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced tldr vlc steam openrgb
+  pkg_install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   

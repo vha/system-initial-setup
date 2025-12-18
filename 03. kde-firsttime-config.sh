@@ -139,18 +139,17 @@ set_kglobal_shortcut "kwin" "Window Fullscreen" "Meta+F"
 log "Installing Plasma extensions"
 kpackagetool6 --type Plasma/Wallpaper --install ./extensions/plasma-smart-video-wallpaper-reborn-v2.8.0.zip
 
-log "Copying themes"
+log "Applying Plasma and SDDM themes"
 sudo_run mkdir -p "/usr/share/plasma/look-and-feel/"
 sudo_run mkdir -p "/usr/share/plasma/desktoptheme/"
 sudo_run mkdir -p "/usr/share/sddm/themes/"
 sudo_run mkdir -p "/etc/sddm.conf.d/"
 
-log "Applying Plasma and SDDM themes"
-sudo_run install configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-and-feel/"
-sudo_run install configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
-sudo_run install configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
-sudo_run install configs/usr/share/wallpapers/* "/usr/share/wallpapers/"
-sudo_run install configs/etc/sddm.conf.d/kde_settings.conf /etc/sddm.conf.d/kde_settings.conf
+sudo_run cp -r configs/usr/share/plasma/look-and-feel/* /usr/share/plasma/look-and-feel/
+sudo_run cp -r configs/usr/share/sddm/themes/* /usr/share/sddm/themes/
+sudo_run cp -r configs/usr/share/plasma/desktoptheme/* /usr/share/plasma/desktoptheme/
+sudo_run cp -r configs/usr/share/wallpapers/* /usr/share/wallpapers/
+sudo_run cp -r configs/etc/sddm.conf.d/kde_settings.conf /etc/sddm.conf.d/kde_settings.conf
 
 lookandfeeltool -a org.manjaro.breath-light.desktop
 # kwriteconfig6 --file ksplashrc --group KSplash --key Theme Fedora-Minimalistic

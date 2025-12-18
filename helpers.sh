@@ -32,13 +32,13 @@ log "Detected OS: $OS (package manager: $PKG_MGR)"
 pkg_install() {
   if [ "${STRICT:-0}" -eq 1 ]; then
     if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf install -y "$@"
+      sudo dnf install -y --skip-unavailable "$@"
     else
       sudo apt-get install -y "$@"
     fi
   else
     if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf install -y "$@" || true
+      sudo dnf install -y --skip-unavailable "$@" || true
     else
       sudo apt-get install -y "$@" || true
     fi
@@ -49,9 +49,9 @@ pkg_group_install() {
   # Groups are dnf-only; apt uses task selection
   if [ "$PKG_MGR" = "dnf" ]; then
     if [ "${STRICT:-0}" -eq 1 ]; then
-      sudo dnf group install -y "$@"
+      sudo dnf group install -y --skip-unavailable "$@"
     else
-    sudo dnf group install -y "$@" || true
+    sudo dnf group install -y --skip-unavailable "$@" || true
     fi
   else
     log "Skipping group install (not supported on apt); groups: $@"
