@@ -1,0 +1,15 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "andreshimas@gmail.com",
+        "Name": "Andrey Koshelev"
+      }
+    ],
+    "Id": "Bamboo_at_Night",
+    "License": "CC BY-SA",
+    "Name": "Bamboo at Night",
+    "Name[en_GB]": "Bamboo at Night",
+    "Name[ru_RU]": "Ночной Бамбук"
+  }
+}

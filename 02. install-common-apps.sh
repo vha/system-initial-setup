@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source helpers.sh
+
 PIHOLE_DIR=/opt/pihole
 
 if [ "${STRICT:-0}" -eq 1 ]; then
@@ -119,16 +121,16 @@ COMMON_TOOLS="git htop vim unzip fzf openssh-client ffmpeg mpv"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced tldr vlc steam openrgb
+  sudo_run install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced tldr vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
   echo -e "[code]\nname=Visual Studio Code\nbaseurl=https://packages.microsoft.com/yumrepos/vscode\nenabled=1\nautorefresh=1\ntype=rpm-md\ngpgcheck=1\ngpgkey=https://packages.microsoft.com/keys/microsoft.asc" | sudo tee /etc/yum.repos.d/vscode.repo > /dev/null   
-  pkg_install code
+  sudo_run install code
 
   # Tailscale
   sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
-  pkg_install tailscale
+  sudo_run install tailscale
 
   # Docker
   setup_docker
@@ -144,7 +146,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
 
 else
   # Ubuntu/Kubuntu-specific
-  pkg_install $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
+  sudo_run install $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
 fi
 
 #############################################

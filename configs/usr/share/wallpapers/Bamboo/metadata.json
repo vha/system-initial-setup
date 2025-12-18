@@ -1,0 +1,15 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "andreshimas@gmail.com",
+        "Name": "Andrey Koshelev"
+      }
+    ],
+    "Id": "Bamboo",
+    "License": "CC BY-SA",
+    "Name": "Bamboo",
+    "Name[en_GB]": "Bamboo",
+    "Name[ru_RU]": "Бамбук"
+  }
+}

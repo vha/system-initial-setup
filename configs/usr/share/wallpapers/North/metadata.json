@@ -1,0 +1,13 @@
+{
+  "KPlugin": {
+    "Authors": [
+      {
+        "Email": "andreshimas@gmail.com",
+        "Name": "Andrey Koshelev"
+      }
+    ],
+    "Id": "North",
+    "License": "CC BY-SA",
+    "Name": "North"
+  }
+}

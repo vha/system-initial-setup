@@ -1,95 +1,15 @@
 #!/usr/bin/env bash
 
+source helpers.sh
+
 #############################################
 # KDE Plasma Post Install Script
 # Supports: Fedora, Kubuntu
-# Safe for new Linux users
 #############################################
 
-if [ "${STRICT:-0}" -eq 1 ]; then
-  set -euo pipefail
-else
-  set +e   # NEVER abort on error (default)
-fi
-
-log() {
-  echo -e "\n==== $1 ====\n"
-}
 
 #############################################
-# OS Detection
-#############################################
-if grep -q '^ID=fedora$' /etc/os-release 2>/dev/null; then
-  OS="fedora"
-  PKG_MGR="dnf"
-elif grep -q '^ID=ubuntu$' /etc/os-release 2>/dev/null; then
-  OS="ubuntu"
-  PKG_MGR="apt"
-else
-  echo "ERROR: Unsupported distribution. Supported: Fedora, Ubuntu/Kubuntu"
-  exit 1
-fi
-
-log "Detected OS: $OS (package manager: $PKG_MGR)"
-
-#############################################
-# Distro-agnostic package helpers
-#############################################
-pkg_install() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf install -y "$@"
-    else
-      sudo apt-get install -y "$@"
-    fi
-  else
-    if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf install -y "$@" || true
-    else
-      sudo apt-get install -y "$@" || true
-    fi
-  fi
-}
-
-pkg_group_install() {
-  # Groups are dnf-only; apt uses task selection
-  if [ "$PKG_MGR" = "dnf" ]; then
-    if [ "${STRICT:-0}" -eq 1 ]; then
-      sudo dnf group install -y "$@"
-    else
-    sudo dnf group install -y "$@" || true
-    fi
-  else
-    log "Skipping group install (not supported on apt); groups: $@"
-  fi
-}
-
-pkg_cmd() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf "$@"
-    else
-      sudo apt-get "$@"
-    fi
-  else
-    if [ "$PKG_MGR" = "dnf" ]; then
-      sudo dnf "$@" || true
-    else
-      sudo apt-get "$@" || true
-    fi
-  fi
-}
-
-sudo_run() {
-  if [ "${STRICT:-0}" -eq 1 ]; then
-    sudo "$@"
-  else
-    sudo "$@" || true
-  fi
-}
-
-#############################################
-# 1. System update
+# System update
 #############################################
 log "Updating system"
 if [ "$PKG_MGR" = "dnf" ]; then
@@ -99,7 +19,7 @@ else
 fi
 
 #############################################
-# 3. Enable additional multimedia repositories
+# Enable additional repositories
 #############################################
 if [ "$PKG_MGR" = "dnf" ]; then
   log "Enabling RPM Fusion and third party repositories"
@@ -121,7 +41,7 @@ else
 fi
 
 #############################################
-# 4. AppStream metadata for Discover
+# AppStream metadata for Discover
 #############################################
 if [ "$PKG_MGR" = "dnf" ]; then
   log "Installing AppStream metadata for Discover"
@@ -130,7 +50,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
 fi
 
 #############################################
-# 5. Multimedia codecs
+# Multimedia codecs
 #############################################
 log "Installing multimedia codecs"
 
@@ -149,7 +69,7 @@ else
 fi
 
 #############################################
-# 6. Flatpak + Flathub
+# Flatpak + Flathub
 #############################################
 log "Enabling Flatpak and Flathub"
 
@@ -157,38 +77,7 @@ pkg_install flatpak
 sudo_run flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
 #############################################
-# 7. KDE Discover fixes
-#############################################
-log "Installing KDE Discover backends"
-
-pkg_install plasma-discover plasma-discover-flatpak 
-if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install plasma-discover PackageKit-Qt6
-else
-  pkg_install packagekit
-fi
-
-#############################################
-# 8. KDE multimedia & utilities
-#############################################
-log "Installing KDE utilities"
-
-pkg_install vlc kde-connect filelight ark gwenview kcalc spectacle
-if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install phonon-qt6-backend-vlc qt
-else
-  pkg_install phonon4qt6-backend-vlc qtchooser
-fi
-
-#############################################
-# 9. Background updates
-#############################################
-log "Enabling background update notifications"
-
-sudo_run systemctl enable --now plasma-discover-notifier.service
-
-#############################################
-# 10. NVIDIA detection (automatic, safe)
+# NVIDIA detection (automatic, safe)
 #############################################
 log "Detecting NVIDIA GPU"
 
@@ -206,7 +95,7 @@ else
 fi
 
 #############################################
-# 11. QoL defaults
+# QoL defaults
 #############################################
 log "Applying small quality-of-life defaults"
 
@@ -221,14 +110,14 @@ else
 fi
 
 #############################################
-# 12. Firewall (should already be enabled)
+# Firewall (should already be enabled)
 #############################################
 log "Ensuring firewall is enabled"
 
 sudo_run systemctl enable --now firewalld
 
 #############################################
-# 13. Backups
+# Backups
 #############################################
 log "Setting up backups"
 
@@ -239,46 +128,15 @@ else
   pkg_install timeshift
 fi
 
-#############################################
-# 14. Restore x11 session support
-#############################################
-log "Restoring X11 session support"
-if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install kwin-x11 plasma-workspace-x11 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-drv-libinput xorg-x11-xauth
-else
-  pkg_install kwin-x11 plasma-workspace-x11 plasma-session-x11
-fi
 
 #############################################
-# 15. Copy config and theme files
+# Copy configs
 #############################################
 log "Copying executables to ~/bin"
 mkdir -p "$HOME/bin"
 cp configs/.local/bin/* "$HOME/bin/"
 
-log "Copying themes"
-sudo_run mkdir -p "/usr/share/plasma/look-and-feel/"
-sudo_run mkdir -p "/usr/share/plasma/desktoptheme/"
-sudo_run mkdir -p "/usr/share/sddm/themes/"
-
-sudo_run cp -r configs/usr/share/plasma/look-and-feel/* "/usr/share/plasma/look-and-feel/"
-sudo_run cp -r configs/usr/share/sddm/themes/* "/usr/share/sddm/themes/"
-sudo_run cp -r configs/usr/share/plasma/desktoptheme/* "/usr/share/plasma/desktoptheme/"
-
-# Apply SDDM theme
-sudo_run sed -i 's/^Current=.*$/Current=breath/g' /etc/sddm.conf.d/kde_settings.conf
-
-# Apply Plasma themes
-lookandfeeltool -a org.manjaro.breath-light.desktop
-# kwriteconfig6 --file ksplashrc --group KSplash --key Theme Fedora-Minimalistic
-
 #############################################
 # Done
 #############################################
 log "Post-install setup complete"
-
-echo "Recommended next steps:"
-echo " - Reboot"
-echo " - Open Discover and let it refresh"
-echo " - Install apps via Flatpak when available"
-echo " - Pair phone with KDE Connect"
