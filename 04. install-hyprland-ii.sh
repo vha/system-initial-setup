@@ -20,7 +20,7 @@ run_cmd() {
   fi
 }
 
-REPO_URL="https://github.com/end-4/dots-hyprland.git"
+REPO_URL="https://github.com/vha/dots-hyprland.git"
 CLONE_DIR="$HOME/src/dots-hyprland"
 
 #############################################
