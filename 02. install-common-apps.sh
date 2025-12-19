@@ -52,8 +52,8 @@ setup_pyenv() {
   echo 'eval "$(pyenv init - bash)"' >> ~/.bash_profile
 
   # Add to fish
-  set -Ux PYENV_ROOT $HOME/.pyenv
-  test -d $PYENV_ROOT/bin; and fish_add_path $PYENV_ROOT/bin
+  fish -c "set -Ux PYENV_ROOT $HOME/.pyenv"
+  fish -c  "test -d $PYENV_ROOT/bin; and fish_add_path $PYENV_ROOT/bin"
   if [ ! -f ~/.config/fish/config.fish ] || ! grep -q 'pyenv init - fish' ~/.config/fish/config.fish; then
     echo 'pyenv init - fish | source' >> ~/.config/fish/config.fish
   fi
