@@ -61,7 +61,7 @@ if [ "$PKG_MGR" = "dnf" ]; then
   pkg_group_install multimedia
   pkg_group_install sound-and-video
   # Hardware acceleration
-  pkg_install mesa-va-drivers mesa-vdpau-drivers libva-utils
+  pkg_install ffmpegthumbnailer gnome-desktop4 mesa-va-drivers mesa-vdpau-drivers libva-utils
 else
   # Ubuntu/Kubuntu codecs
   pkg_install ubuntu-restricted-extras
