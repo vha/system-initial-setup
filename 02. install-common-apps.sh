@@ -40,6 +40,25 @@ setup_pihole() {
   sudo_run docker ps --filter name=pihole
 }
 
+setup_pyenv() {
+  log "Setting up pyenv"
+  if [ ! -d "$HOME/.pyenv" ]; then
+    curl -fsSL https://pyenv.run | bash
+  fi
+
+  # Add to bash
+  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+  echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+  echo 'eval "$(pyenv init - bash)"' >> ~/.bash_profile
+
+  # Add to fish
+  set -Ux PYENV_ROOT $HOME/.pyenv
+  test -d $PYENV_ROOT/bin; and fish_add_path $PYENV_ROOT/bin
+  if [ ! -f ~/.config/fish/config.fish ] || ! grep -q 'pyenv init - fish' ~/.config/fish/config.fish; then
+    echo 'pyenv init - fish | source' >> ~/.config/fish/config.fish
+  fi
+}
+
 #############################################
 # Flatpak apps
 #############################################
@@ -63,11 +82,11 @@ flatpak_safe org.localsend.localsend_app
 log "Installing packages via $PKG_MGR"
 
 # Common packages across distros
-PACKAGES="git htop vim unzip fzf ffmpeg mpv tldr rEFInd"
+PACKAGES="git htop vim unzip fzf ffmpeg mpv tldr fish"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_install $PACKAGES p7zip p7zip-plugins dnf-plugins-core vim-enhanced vlc steam openrgb
+  pkg_install $PACKAGES p7zip p7zip-plugins dnf-plugins-core rEFInd vim-enhanced vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
@@ -78,9 +97,9 @@ if [ "$PKG_MGR" = "dnf" ]; then
   yes | sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
   pkg_install tailscale
 
-  # Docker & Pi-hole
   setup_docker
   setup_pihole
+  setup_pyenv
 
   # System services
   sudo_run systemctl enable --now openrgb
