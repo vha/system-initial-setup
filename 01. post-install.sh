@@ -133,9 +133,9 @@ fi
 # Copy configs
 #############################################
 log "Copying executables to ~/bin"
-mkdir -p "$HOME/bin"
-cp configs/.local/bin/* "$HOME/.local/bin/"
-cp configs/.config/* "$HOME/.config/"
+mkdir -p "$HOME/.local/bin"
+cp -r configs/.local/bin/* "$HOME/.local/bin/"
+cp -r configs/.config/* "$HOME/.config/"
 
 #############################################
 # Done
