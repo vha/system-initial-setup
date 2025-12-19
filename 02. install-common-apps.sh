@@ -32,12 +32,18 @@ setup_pihole() {
   sudo_run chcon -Rt container_file_t $PIHOLE_DIR # SELinux context
 
   sudo_run docker compose -f $PIHOLE_DIR/docker-compose.yml up -d --remove-orphans
+
+  # Verify Pi-hole setup
+  log "Verifying Pi-hole setup"
+  resolvectl status
+  ss -tulpn | grep :53
+  sudo_run docker ps --filter name=pihole
 }
 
 #############################################
-# Flatpak apps (preferred for GUI)
+# Flatpak apps
 #############################################
-log "Installing common Flatpak applications"
+log "Installing Flatpak applications"
 
 flatpak_safe com.brave.Browser
 flatpak_safe com.discordapp.Discord
@@ -54,14 +60,14 @@ flatpak_safe org.localsend.localsend_app
 #############################################
 # Regular packages
 #############################################
-log "Installing common packages via $PKG_MGR"
+log "Installing packages via $PKG_MGR"
 
 # Common packages across distros
-COMMON_TOOLS="git htop vim unzip fzf ffmpeg mpv tldr"
+PACKAGES="git htop vim unzip fzf ffmpeg mpv tldr rEFInd"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_install $COMMON_TOOLS p7zip p7zip-plugins dnf-plugins-core vim-enhanced vlc steam openrgb
+  pkg_install $PACKAGES p7zip p7zip-plugins dnf-plugins-core vim-enhanced vlc steam openrgb
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
@@ -72,44 +78,22 @@ if [ "$PKG_MGR" = "dnf" ]; then
   yes | sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
   pkg_install tailscale
 
-  # Docker
+  # Docker & Pi-hole
   setup_docker
-
-  # Pi-hole
   setup_pihole
 
-  # Verify Pi-hole setup
-  log "Verifying Pi-hole setup"
-  resolvectl status
-  ss -tulpn | grep :53
-  docker ps --filter name=pihole
+  # System services
+  sudo_run systemctl enable --now openrgb
 
 else
-  # Ubuntu/Kubuntu-specific
-  pkg_install $COMMON_TOOLS p7zip p7zip-rar vlc plasma-framework
+  pkg_install $PACKAGES p7zip p7zip-rar vlc plasma-framework
 fi
 
 #############################################
 # Optional: remove KDE clutter
 #############################################
 log "Removing optional KDE apps (email, calendar, player)"
-
-if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_cmd remove -y \
-    korganizer \
-    kontact \
-    kmail \
-    akregator \
-    dragon
-else
-  # Ubuntu/Kubuntu
-  pkg_cmd remove -y \
-    korganizer \
-    kontact \
-    kmail \
-    akregator \
-    dragon || true
-fi
+pkg_cmd remove -y korganizer kontact kmail akregator dragon
 
 #############################################
 # Done
