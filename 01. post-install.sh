@@ -7,6 +7,10 @@ source helpers.sh
 # Supports: Fedora, Kubuntu
 #############################################
 
+# Disable wifi power save
+log "Disabling WiFi power save"
+sudo install -D -m 644 configs/etc/NetworkManager/conf.d/wifi-powersave-off.conf /etc/NetworkManager/conf.d/wifi-powersave-off.conf
+sudo systemctl restart NetworkManager
 
 #############################################
 # System update
