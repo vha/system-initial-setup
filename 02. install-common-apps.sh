@@ -5,6 +5,27 @@ source helpers.sh
 PIHOLE_DIR=/opt/pihole
 
 
+setup_pyenv() {
+  log "Setting up pyenv"
+  if [ ! -d "$HOME/.pyenv" ]; then
+    curl -fsSL https://pyenv.run | bash
+  fi
+
+  # Add to bash
+  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
+  echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+  echo 'eval "$(pyenv init - bash)"' >> ~/.bash_profile
+
+  # Add to fish
+  fish
+  set -Ux PYENV_ROOT $HOME/.pyenv
+  test -d $PYENV_ROOT/bin; and fish_add_path $PYENV_ROOT/bin
+  if [ ! -f ~/.config/fish/config.fish ] || ! grep -q 'pyenv init - fish' ~/.config/fish/config.fish; then
+    echo 'pyenv init - fish | source' >> ~/.config/fish/config.fish
+  fi
+  exit
+}
+
 setup_docker() {
   yes | sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
   pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -24,39 +45,26 @@ setup_pihole() {
   sudo_run install -d /etc/NetworkManager/conf.d
   sudo_run install -m 644 configs/etc/systemd/resolved.conf.d/* /etc/systemd/resolved.conf.d/
   sudo_run install -m 644 configs/etc/NetworkManager/conf.d/* /etc/NetworkManager/conf.d/
-  sudo_run ln -sf /run/systemd/resolve/stub-resolv.conf /etc/resolv.conf # point resolv.conf to systemd-resolved
-
+  
 
   sudo_run systemctl try-restart NetworkManager
-  sudo_run systemctl try-restart systemd-resolved
+
+  # Stop and disable systemd-resolved to free up port 53
+  sudo_run systemctl stop systemd-resolved
+  sudo_run systemctl disable --now systemd-resolved
+  # Hide to prevent it from being started by other services like NetworkManager
+  sudo_run systemctl mask systemd-resolved
+
   sudo_run chcon -Rt container_file_t $PIHOLE_DIR # SELinux context
 
   sudo_run docker compose -f $PIHOLE_DIR/docker-compose.yml up -d --remove-orphans
+  sudo_run systemctl restart NetworkManager
 
   # Verify Pi-hole setup
   log "Verifying Pi-hole setup"
   resolvectl status
   ss -tulpn | grep :53
   sudo_run docker ps --filter name=pihole
-}
-
-setup_pyenv() {
-  log "Setting up pyenv"
-  if [ ! -d "$HOME/.pyenv" ]; then
-    curl -fsSL https://pyenv.run | bash
-  fi
-
-  # Add to bash
-  echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bash_profile
-  echo '[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bash_profile
-  echo 'eval "$(pyenv init - bash)"' >> ~/.bash_profile
-
-  # Add to fish
-  fish -c "set -Ux PYENV_ROOT $HOME/.pyenv"
-  fish -c  "test -d $PYENV_ROOT/bin; and fish_add_path $PYENV_ROOT/bin"
-  if [ ! -f ~/.config/fish/config.fish ] || ! grep -q 'pyenv init - fish' ~/.config/fish/config.fish; then
-    echo 'pyenv init - fish | source' >> ~/.config/fish/config.fish
-  fi
 }
 
 #############################################
@@ -82,11 +90,11 @@ flatpak_safe org.localsend.localsend_app
 log "Installing packages via $PKG_MGR"
 
 # Common packages across distros
-PACKAGES="git htop vim unzip fzf ffmpeg mpv tldr fish"
+PACKAGES="git htop unzip fzf ffmpeg mpv vlc fish openrgb steam"
 
 if [ "$PKG_MGR" = "dnf" ]; then
   # Fedora-specific
-  pkg_install $PACKAGES p7zip p7zip-plugins dnf-plugins-core rEFInd vim-enhanced vlc steam openrgb
+  pkg_install $PACKAGES p7zip p7zip-plugins dnf-plugins-core rEFInd vim-enhanced tldr
 
   # Visual Studio Code
   sudo_run rpm --import https://packages.microsoft.com/keys/microsoft.asc   
@@ -97,15 +105,26 @@ if [ "$PKG_MGR" = "dnf" ]; then
   yes | sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
   pkg_install tailscale
 
+  setup_pyenv
   setup_docker
   setup_pihole
-  setup_pyenv
 
   # System services
   sudo_run systemctl enable --now openrgb
 
 else
-  pkg_install $PACKAGES p7zip p7zip-rar vlc plasma-framework
+    # Visual Studio Code
+  wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.gpg &&
+  sudo install -D -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft.gpg &&
+  rm -f microsoft.gpg
+
+  sudo_run install -d /etc/apt/sources.list.d
+  sudo_run cp configs/etc/apt/sources.list.d/vscode.sources /etc/apt/sources.list.d/
+
+  sudo apt update &&
+  pkg_install $PACKAGES wget gpg apt-transport-https p7zip p7zip-rar vlc vim plasma-framework refind code
+
+
 fi
 
 #############################################

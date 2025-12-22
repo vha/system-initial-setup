@@ -115,6 +115,7 @@ fi
 log "Ensuring firewall is enabled"
 
 sudo_run systemctl enable --now firewalld
+sudo_run ufw enable
 
 #############################################
 # Backups
