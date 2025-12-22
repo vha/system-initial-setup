@@ -53,7 +53,7 @@ log "Restoring X11 session support"
 if [ "$PKG_MGR" = "dnf" ]; then
   pkg_install kwin-x11 plasma-workspace-x11 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-drv-libinput xorg-x11-xauth
 else
-  pkg_install kwin-x11 plasma-workspace-x11 plasma-session-x11
+  pkg_install kwin-x11 plasma-session-x11
 fi
 
 #############################################
@@ -61,9 +61,9 @@ fi
 #############################################
 log "Installing KDE Discover backends"
 
-pkg_install plasma-discover plasma-discover-flatpak 
+pkg_install plasma-discover 
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install PackageKit-Qt6
+  pkg_install PackageKit-Qt6 plasma-discover-flatpak 
 else
   pkg_install packagekit
 fi
@@ -73,11 +73,11 @@ fi
 #############################################
 log "Installing KDE utilities"
 
-pkg_install vlc kde-connect filelight ark gwenview kcalc spectacle
+pkg_install filelight ark gwenview
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install phonon-qt6-backend-vlc qt
+  pkg_install phonon-qt6-backend-vlc qt kde-connect
 else
-  pkg_install phonon4qt6-backend-vlc qtchooser
+  pkg_install phonon4qt6-backend-vlc qtchooser kdeconnect
 fi
 
 #############################################

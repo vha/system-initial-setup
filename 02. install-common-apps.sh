@@ -27,8 +27,18 @@ setup_pyenv() {
 }
 
 setup_docker() {
-  yes | sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+  if [ "$PKG_MGR" = "dnf" ]; then
+    yes | sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
+  else
+    # Add Docker's official GPG key 
+    sudo_run install -m 0755 -d /etc/apt/keyrings
+    sudo_run curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    sudo_run chmod a+r /etc/apt/keyrings/docker.asc
+    sudo_run install -m 644 configs/etc/apt/sources.list.d/docker.sources /etc/apt/sources.list.d/docker.sources
+  fi
+  log "Installing Docker"
   pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
   sudo getent group docker >/dev/null || sudo_run groupadd docker  # create docker group if it doesn't exist, don't sudo_run getent so it actually fails if group doesn't exist
   sudo_run usermod -aG docker $USER # group membership applies after reboot
   sudo_run install -m 644 configs/etc/docker/daemon.json /etc/docker/daemon.json
@@ -105,9 +115,6 @@ if [ "$PKG_MGR" = "dnf" ]; then
   yes | sudo_run dnf config-manager addrepo --from-repofile=https://pkgs.tailscale.com/stable/fedora/tailscale.repo
   pkg_install tailscale
 
-  setup_pyenv
-  setup_docker
-  setup_pihole
 
   # System services
   sudo_run systemctl enable --now openrgb
@@ -118,14 +125,16 @@ else
   sudo install -D -o root -g root -m 644 microsoft.gpg /usr/share/keyrings/microsoft.gpg &&
   rm -f microsoft.gpg
 
-  sudo_run install -d /etc/apt/sources.list.d
-  sudo_run cp configs/etc/apt/sources.list.d/vscode.sources /etc/apt/sources.list.d/
+  sudo_run install -D -m 644 configs/etc/apt/sources.list.d/vscode.sources /etc/apt/sources.list.d/vscode.sources
 
   sudo apt update &&
-  pkg_install $PACKAGES wget gpg apt-transport-https p7zip p7zip-rar vlc vim plasma-framework refind code
-
-
+  pkg_install $PACKAGES ca-certificates curl wget gpg apt-transport-https p7zip p7zip-rar vlc vim plasma-framework refind code
 fi
+
+
+setup_pyenv
+setup_docker
+setup_pihole
 
 #############################################
 # Optional: remove KDE clutter
