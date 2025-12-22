@@ -17,25 +17,31 @@ setup_pyenv() {
   echo 'eval "$(pyenv init - bash)"' >> ~/.bash_profile
 
   # Add to fish
-  fish
-  set -Ux PYENV_ROOT $HOME/.pyenv
-  test -d $PYENV_ROOT/bin; and fish_add_path $PYENV_ROOT/bin
+  fish -c "set -Ux PYENV_ROOT $HOME/.pyenv"
+  fish -c "test -d $HOME/.pyenv/bin; and fish_add_path $HOME/.pyenv/bin"
   if [ ! -f ~/.config/fish/config.fish ] || ! grep -q 'pyenv init - fish' ~/.config/fish/config.fish; then
     echo 'pyenv init - fish | source' >> ~/.config/fish/config.fish
   fi
-  exit
 }
 
 setup_docker() {
   if [ "$PKG_MGR" = "dnf" ]; then
     yes | sudo_run dnf config-manager addrepo --from-repofile https://download.docker.com/linux/fedora/docker-ce.repo
   else
-    # Add Docker's official GPG key 
+    # Get Docker's official GPG key 
     sudo_run install -m 0755 -d /etc/apt/keyrings
     sudo_run curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
     sudo_run chmod a+r /etc/apt/keyrings/docker.asc
 
-    sudo_run install -m 644 configs/etc/apt/sources.list.d/docker.sources /etc/apt/sources.list.d/docker.sources
+    # Add the repository to Apt sources:
+    sudo_run tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
     sudo_run apt update
   fi
   log "Installing Docker"
@@ -134,8 +140,8 @@ else
 fi
 
 
-# setup_pyenv
-# setup_docker
+setup_pyenv
+setup_docker
 # setup_pihole
 
 #############################################

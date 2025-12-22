@@ -3,7 +3,7 @@ Description=OpenRGB Profile Loader
 
 [Service]
 Type=oneshot
-ExecStart=/usr/bin/openrgb -p $HOME/.config/OpenRGB/blanquiazul.orp
+ExecStart=/usr/bin/openrgb -p ~/.config/OpenRGB/blanquiazul.orp
 RemainAfterExit=yes
 
 [Install]

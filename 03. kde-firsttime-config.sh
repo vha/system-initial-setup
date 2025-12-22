@@ -53,19 +53,15 @@ log "Restoring X11 session support"
 if [ "$PKG_MGR" = "dnf" ]; then
   pkg_install kwin-x11 plasma-workspace-x11 xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-drv-libinput xorg-x11-xauth
 else
-  pkg_install kwin-x11 plasma-session-x11
+  pkg_install plasma-session-x11
 fi
 
 #############################################
 # KDE Discover fixes
 #############################################
-log "Installing KDE Discover backends"
-
-pkg_install plasma-discover 
 if [ "$PKG_MGR" = "dnf" ]; then
-  pkg_install PackageKit-Qt6 plasma-discover-flatpak 
-else
-  pkg_install packagekit
+  log "Installing KDE Discover backends"
+  pkg_install PackageKit-Qt6 plasma-discover plasma-discover-flatpak 
 fi
 
 #############################################
@@ -140,10 +136,19 @@ log "Installing Plasma extensions"
 kpackagetool6 --type Plasma/Wallpaper --install ./extensions/plasma-smart-video-wallpaper-reborn-v2.8.0.zip
 
 log "Applying Plasma and SDDM themes"
-sudo_run mkdir -p "/usr/share/plasma/look-and-feel/"
-sudo_run mkdir -p "/usr/share/plasma/desktoptheme/"
-sudo_run mkdir -p "/usr/share/sddm/themes/"
-sudo_run mkdir -p "/etc/sddm.conf.d/"
+# Change the splash logo to the corresponding distro logo
+local new_logo="images/manjarologo.svgz"
+if [ "$PKG_MGR" = "dnf" ]; then
+  new_logo="images/fedora.svg"
+else
+  new_logo="images/start-here-kubuntu.svgz"
+fi
+sed -i "s|source: \"images/manjarologo.svgz\"|source: \"$new_logo\"|" configs/usr/share/plasma/look-and-feel/org.manjaro.breath.desktop/contents/splash/Splash.qml
+
+sudo mkdir -p "/usr/share/plasma/look-and-feel/"
+sudo mkdir -p "/usr/share/plasma/desktoptheme/"
+sudo mkdir -p "/usr/share/sddm/themes/"
+sudo mkdir -p "/etc/sddm.conf.d/"
 
 sudo_run cp -r configs/usr/share/plasma/look-and-feel/* /usr/share/plasma/look-and-feel/
 sudo_run cp -r configs/usr/share/sddm/themes/* /usr/share/sddm/themes/
@@ -153,11 +158,9 @@ sudo_run cp -r configs/etc/sddm.conf.d/kde_settings.conf /etc/sddm.conf.d/kde_se
 
 lookandfeeltool -a org.manjaro.breath-light.desktop
 # kwriteconfig6 --file ksplashrc --group KSplash --key Theme Fedora-Minimalistic
-# Apply SDDM theme
-# sudo_run sed -i 's/^Current=.*$/Current=breath/g' /etc/sddm.conf.d/kde_settings.conf
 
 # log "Reloading KDE components"
-
+# Just logout bro, this shit's not enough
 # qdbus org.kde.KWin /KWin reconfigure
 # qdbus org.kde.plasmashell /PlasmaShell refreshCurrentShell
 
@@ -165,5 +168,4 @@ lookandfeeltool -a org.manjaro.breath-light.desktop
 # Done
 #############################################
 log "First-login KDE configuration applied"
-
 echo "Log out and back in to ensure all settings take effect."
