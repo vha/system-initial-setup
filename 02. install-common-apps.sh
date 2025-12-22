@@ -34,14 +34,16 @@ setup_docker() {
     sudo_run install -m 0755 -d /etc/apt/keyrings
     sudo_run curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
     sudo_run chmod a+r /etc/apt/keyrings/docker.asc
+
     sudo_run install -m 644 configs/etc/apt/sources.list.d/docker.sources /etc/apt/sources.list.d/docker.sources
+    sudo_run apt update
   fi
   log "Installing Docker"
   pkg_install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
   sudo getent group docker >/dev/null || sudo_run groupadd docker  # create docker group if it doesn't exist, don't sudo_run getent so it actually fails if group doesn't exist
   sudo_run usermod -aG docker $USER # group membership applies after reboot
-  sudo_run install -m 644 configs/etc/docker/daemon.json /etc/docker/daemon.json
+  sudo_run install -D -m 644 configs/etc/docker/daemon.json /etc/docker/daemon.json
   sudo_run systemctl enable --now docker
 }
 
@@ -83,16 +85,16 @@ setup_pihole() {
 log "Installing Flatpak applications"
 
 flatpak_safe com.brave.Browser
-flatpak_safe com.discordapp.Discord
-flatpak_safe com.spotify.Client
-flatpak_safe com.ktechpit.torrhunt
-flatpak_safe com.transmissionbt.Transmission
-flatpak_safe org.kde.krita
-flatpak_safe org.libreoffice.LibreOffice
-flatpak_safe com.getmailspring.Mailspring
-flatpak_safe com.usebottles.bottles
-flatpak_safe com.rustdesk.RustDesk
-flatpak_safe org.localsend.localsend_app
+# flatpak_safe com.discordapp.Discord
+# flatpak_safe com.spotify.Client
+# flatpak_safe com.ktechpit.torrhunt
+# flatpak_safe com.transmissionbt.Transmission
+# flatpak_safe org.kde.krita
+# flatpak_safe org.libreoffice.LibreOffice
+# flatpak_safe com.getmailspring.Mailspring
+# flatpak_safe com.usebottles.bottles
+# flatpak_safe com.rustdesk.RustDesk
+# flatpak_safe org.localsend.localsend_app
 
 #############################################
 # Regular packages
@@ -132,9 +134,9 @@ else
 fi
 
 
-setup_pyenv
-setup_docker
-setup_pihole
+# setup_pyenv
+# setup_docker
+# setup_pihole
 
 #############################################
 # Optional: remove KDE clutter
