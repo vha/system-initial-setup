@@ -9,9 +9,9 @@ source helpers.sh
 
 # Disable wifi power save
 log "Disabling WiFi power save"
-sudo install -D -m 644 configs/etc/NetworkManager/conf.d/wifi-powersave-off.conf /etc/NetworkManager/conf.d/wifi-powersave-off.conf
+sudo install -D -m 644 -o root -g root configs/etc/NetworkManager/conf.d/wifi-powersave-off.conf /etc/NetworkManager/conf.d/wifi-powersave-off.conf
 sudo systemctl restart NetworkManager
-while ! systemctl is-active --quiet NetworkManager.service; do
+while ! ping -c1 8.8.8.8 >/dev/null 2>&1; do
     sleep 1
 done
 echo "NetworkManager has restarted successfully."   
