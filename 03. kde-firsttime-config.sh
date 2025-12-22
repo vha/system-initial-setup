@@ -137,7 +137,7 @@ kpackagetool6 --type Plasma/Wallpaper --install ./extensions/plasma-smart-video-
 
 log "Applying Plasma and SDDM themes"
 # Change the splash logo to the corresponding distro logo
-local new_logo="images/manjarologo.svgz"
+new_logo="images/manjarologo.svgz"
 if [ "$PKG_MGR" = "dnf" ]; then
   new_logo="images/fedora.svg"
 else
