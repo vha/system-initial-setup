@@ -2,23 +2,31 @@ services:
   pihole:
     image: pihole/pihole:latest
     container_name: pihole
-    hostname: pihole # optional, for DHCP
-    network_mode: host # no port mapping needed 
+    hostname: pihole 
     restart: unless-stopped
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+
+    # Bind specific ports to localhost only
+    ports:
+      - "127.0.0.1:53:53/tcp"
+      - "127.0.0.1:53:53/udp"
+      # - "127.0.0.1:80:80/tcp" # Optional: if you want the web UI on localhost:80
 
     environment:
       TZ: "Europe/Madrid"
-      DNSMASQ_LISTENING: "all" 
-      WEB_BIND_ADDR: "127.0.0.1" # bind web interface to localhost only
-      WEBPASSWORD: "password" # Default password; change it after setup
+      DNSMASQ_LISTENING: "all"
+      WEB_BIND_ADDR: "0.0.0.0" # Docker handles the binding to 127.0.0.1 via 'ports'
+      FTLCONF_webserver_api_password: "password" # Default password; change it after setup
+      # FORCE Pihole to use a real upstream, avoiding loop issues
+      FTLCONF_dns_upstreams: "1.1.1.1;8.8.8.8"
 
     volumes:
       - ./etc-pihole:/etc/pihole:Z # :Z to appease SELinux
-      - ./etc-dnsmasq.d:/etc/dnsmasq.d:Z
 
     healthcheck:
-      test: ["CMD", "dig", "@127.0.0.1", "pi.hole"]
+      test: ["CMD", "dig", "@127.0.0.1", "pi.hole", "+short"]
       interval: 30s
       timeout: 5s
       retries: 3
-  
