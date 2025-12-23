@@ -91,16 +91,16 @@ setup_pihole() {
 log "Installing Flatpak applications"
 
 flatpak_safe com.brave.Browser
-# flatpak_safe com.discordapp.Discord
-# flatpak_safe com.spotify.Client
-# flatpak_safe com.ktechpit.torrhunt
-# flatpak_safe com.transmissionbt.Transmission
-# flatpak_safe org.kde.krita
-# flatpak_safe org.libreoffice.LibreOffice
-# flatpak_safe com.getmailspring.Mailspring
-# flatpak_safe com.usebottles.bottles
-# flatpak_safe com.rustdesk.RustDesk
-# flatpak_safe org.localsend.localsend_app
+flatpak_safe com.discordapp.Discord
+flatpak_safe com.spotify.Client
+flatpak_safe com.ktechpit.torrhunt
+flatpak_safe com.transmissionbt.Transmission
+flatpak_safe org.kde.krita
+flatpak_safe org.libreoffice.LibreOffice
+flatpak_safe com.getmailspring.Mailspring
+flatpak_safe com.usebottles.bottles
+flatpak_safe com.rustdesk.RustDesk
+flatpak_safe org.localsend.localsend_app
 
 #############################################
 # Regular packages

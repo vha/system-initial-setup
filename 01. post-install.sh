@@ -137,6 +137,9 @@ else
   pkg_install timeshift
 fi
 
+# Add kernel vanilla repo and upgrade kernels
+sudo_run dnf -y copr enable @kernel-vanilla/stable
+sudo_run dnf upgrade 'kernel*'   
 
 #############################################
 # Copy configs
