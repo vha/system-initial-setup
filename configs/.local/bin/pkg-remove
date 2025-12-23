@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+###############################################
+# Interactive package UNINSTALLER for Fedora
+# Uses dnf5 and flatpak as backends
+###############################################
+
+set +e
+
+command -v fzf >/dev/null || {
+  echo "fzf not installed"
+  exit 1
+}
+
+QUERY="$*"
+
+TMPDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR"' EXIT
+
+DNF_INST="$TMPDIR/dnf_inst"
+FLAT_INST="$TMPDIR/flat_inst"
+MERGED="$TMPDIR/merged"
+
+echo "Scanning installed packages..."
+
+#############################################
+# Collect Installed Packages in Parallel
+#############################################
+
+# 1. Added \n to the query format to force newlines
+# 2. Used sed instead of awk for more reliable prepending
+(dnf repoquery --installed --qf "%{name}\n" 2>/dev/null | sort -u | sed 's/^/dnf /' > "$DNF_INST") &
+DNF_PID=$!
+
+(flatpak list --columns=application,name 2>/dev/null | awk -F'\t' '{print "flatpak " $1 " " $2}' | sort -u > "$FLAT_INST") &
+FLAT_PID=$!
+
+wait $DNF_PID $FLAT_PID
+
+#############################################
+# Combine lists
+#############################################
+
+cat "$DNF_INST" "$FLAT_INST" > "$MERGED"
+
+#############################################
+# fzf UI
+#############################################
+
+# Fixed fields: {1}=backend, {2}=pkg, {3+}=desc
+SELECTED=$(cat "$MERGED" | \
+  fzf --multi \
+      --query="$QUERY" \
+      --prompt="pkg remove > " \
+      --with-nth=1,2,3 \
+      --preview '
+        backend={1}
+        pkg={2}
+
+        if [ "$backend" = "dnf" ]; then
+          dnf info "$pkg" 2>/dev/null | sed -n "1,120p"
+        else
+          flatpak info "$pkg" 2>/dev/null | sed -n "1,120p"
+        fi
+      ' \
+      --preview-window=right:50%
+)
+
+[ -z "$SELECTED" ] && exit 0
+
+#############################################
+# Split selections
+#############################################
+
+DNF_PKGS=()
+FLAT_PKGS=()
+
+while read -r backend pkg _;
+do
+  if [ "$backend" = "dnf" ]; then
+    DNF_PKGS+=("$pkg")
+  else
+    FLAT_PKGS+=("$pkg")
+  fi
+done <<< "$SELECTED"
+
+#############################################
+# Removal logic
+#############################################
+
+echo
+[ ${#DNF_PKGS[@]} -gt 0 ] && {
+  echo "DNF packages to REMOVE:"
+  printf "  %s\n" "${DNF_PKGS[@]}"
+}
+
+[ ${#FLAT_PKGS[@]} -gt 0 ] && {
+  echo "Flatpak apps to REMOVE:"
+  printf "  %s\n" "${FLAT_PKGS[@]}"
+}
+
+echo
+read -rp "Proceed with uninstallation? [y/N] " confirm
+[[ "$confirm" =~ ^[Yy]$ ]] || exit 0
+
+[ ${#DNF_PKGS[@]} -gt 0 ] && sudo dnf remove -y "${DNF_PKGS[@]}"
+[ ${#FLAT_PKGS[@]} -gt 0 ] && flatpak uninstall -y "${FLAT_PKGS[@]}"

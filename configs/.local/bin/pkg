@@ -23,24 +23,23 @@ FLAT_INST="$TMPDIR/flat_inst"
 FLAT_AVAIL="$TMPDIR/flat_avail"
 MERGED="$TMPDIR/merged"
 
-#############################################
-# Collect Fedora packages (dnf5)
-#############################################
+echo "Syncing package databases..."
+# Start DNF queries in background
+(dnf repoquery --installed --qf "%{name}" 2>/dev/null | sort -u > "$DNF_INST") &
+DNF_INST_PID=$!
 
-dnf repoquery --installed --qf "%{name}" 2>/dev/null | sort -u > "$DNF_INST"
-dnf repoquery --available --qf "%{name}" 2>/dev/null | sort -u > "$DNF_AVAIL"
+(dnf repoquery --available --qf "%{name}" 2>/dev/null | sort -u > "$DNF_AVAIL") &
+DNF_AVAIL_PID=$!
 
-#############################################
-# Collect Flatpaks (ID + human name)
-#############################################
+# Start Flatpak queries in background
+(flatpak list --columns=application,name 2>/dev/null | awk -F'\t' '{print $1 "|" $2}' | sort -u > "$FLAT_INST") &
+FLAT_INST_PID=$!
 
-flatpak list --columns=application,name 2>/dev/null \
-  | awk -F'\t' '{print $1 "|" $2}' \
-  | sort -u > "$FLAT_INST"
+(flatpak remote-ls flathub --columns=application,name 2>/dev/null | awk -F'\t' '{print $1 "|" $2}' | sort -u > "$FLAT_AVAIL") &
+FLAT_AVAIL_PID=$!
 
-flatpak remote-ls flathub --columns=application,name 2>/dev/null \
-  | awk -F'\t' '{print $1 "|" $2}' \
-  | sort -u > "$FLAT_AVAIL"
+# Wait for all background jobs to finish
+wait $DNF_INST_PID $DNF_AVAIL_PID $FLAT_INST_PID $FLAT_AVAIL_PID
 
 #############################################
 # Ranking
